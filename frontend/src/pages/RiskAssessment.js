@@ -1,131 +1,81 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  Box,
-  Typography,
-  Card,
-  CardContent,
-  Grid,
-  Alert,
-  LinearProgress,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Chip,
-  Paper,
+  Box, Typography, Card, CardContent, Grid, Alert,
+  LinearProgress, List, ListItem, ListItemIcon, ListItemText,
+  Chip, Paper, CircularProgress as MuiSpinner,
 } from '@mui/material';
-import {
-  Warning,
-  Error,
-  CheckCircle,
-  TrendingUp,
-  Schedule,
-  Person,
-} from '@mui/icons-material';
+import { Warning, Error, CheckCircle, TrendingUp, Schedule, Person } from '@mui/icons-material';
+import { analyticsAPI } from '../services/api';
 
 const RiskAssessment = () => {
-  const riskFactors = [
-    { factor: 'Prolonged Poor Posture', level: 'High', score: 85, color: 'error' },
-    { factor: 'Spinal Deviation', level: 'Medium', score: 60, color: 'warning' },
-    { factor: 'Muscle Fatigue', level: 'Low', score: 25, color: 'success' },
-    { factor: 'Movement Frequency', level: 'Medium', score: 45, color: 'warning' },
-  ];
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const recommendations = [
-    { text: 'Take posture breaks every 30 minutes', priority: 'High', icon: <Schedule /> },
-    { text: 'Perform neck and shoulder stretches', priority: 'Medium', icon: <Person /> },
-    { text: 'Adjust workstation ergonomics', priority: 'High', icon: <Warning /> },
-    { text: 'Strengthen core muscles', priority: 'Medium', icon: <TrendingUp /> },
-  ];
+  useEffect(() => {
+    analyticsAPI.getRiskAssessment()
+      .then(setData)
+      .catch(() => setError('Failed to load risk data.'))
+      .finally(() => setLoading(false));
+  }, []);
 
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case 'High': return 'error';
-      case 'Medium': return 'warning';
-      case 'Low': return 'success';
-      default: return 'default';
-    }
+  const getPriorityColor = (level) => {
+    if (level === 'High') return 'error';
+    if (level === 'Medium') return 'warning';
+    return 'success';
   };
 
+  const iconMap = { High: <Warning />, Medium: <Schedule />, Low: <CheckCircle /> };
+
+  if (loading) return (
+    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+      <MuiSpinner />
+    </Box>
+  );
+
   return (
-     <Box
-        component="main"
-        sx={{
-          ml: '-200px',   // 👈 move page LEFT (adjust value)
-          mt: '6px',    // navbar height
-          p: 2,          // slightly tighter padding
-          minHeight: '100vh',
-          backgroundColor: 'background.default',
-        }}
-      >
-      <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'primary.main', mb: 3 }}>
-        Risk Assessment
-      </Typography>
+    <Box component="main" sx={{ ml: '-200px', mt: '6px', p: 2, minHeight: '100vh', backgroundColor: 'background.default' }}>
+      <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'primary.main', mb: 3 }}>Risk Assessment</Typography>
+
+      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
       <Grid container spacing={3}>
         {/* Overall Risk Score */}
         <Grid item xs={12} md={6}>
           <Card sx={{ height: '100%' }}>
             <CardContent sx={{ textAlign: 'center' }}>
-              <Typography variant="h6" gutterBottom>
-                Overall Risk Score
-              </Typography>
+              <Typography variant="h6" gutterBottom>Overall Risk Score</Typography>
               <Box sx={{ position: 'relative', display: 'inline-flex', mb: 2 }}>
-                <Box
-                  sx={{
-                    width: 120,
-                    height: 120,
-                    borderRadius: '50%',
-                    background: 'conic-gradient(#f44336 0deg 126deg, #e0e0e0 126deg 360deg)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Box
-                    sx={{
-                      width: 80,
-                      height: 80,
-                      borderRadius: '50%',
-                      backgroundColor: 'background.paper',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-                      65
-                    </Typography>
+                <Box sx={{
+                  width: 120, height: 120, borderRadius: '50%',
+                  background: `conic-gradient(#f44336 0deg ${Math.round((data?.overallRiskScore ?? 0) * 3.6)}deg, #e0e0e0 ${Math.round((data?.overallRiskScore ?? 0) * 3.6)}deg 360deg)`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <Box sx={{ width: 80, height: 80, borderRadius: '50%', backgroundColor: 'background.paper', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Typography variant="h4" sx={{ fontWeight: 'bold' }}>{data?.overallRiskScore ?? '--'}</Typography>
                   </Box>
                 </Box>
               </Box>
-              <Typography variant="h6" color="error.main" sx={{ fontWeight: 'bold' }}>
-                Moderate Risk
-              </Typography>
-              <Typography color="text.secondary">
-                Requires attention and corrective measures
+              <Typography variant="h6"
+                color={data?.overallRiskLevel === 'High' ? 'error.main' : data?.overallRiskLevel === 'Medium' ? 'warning.main' : 'success.main'}
+                sx={{ fontWeight: 'bold' }}>
+                {data?.overallRiskLevel ?? '--'} Risk
               </Typography>
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Risk Alerts */}
+        {/* Alerts */}
         <Grid item xs={12} md={6}>
           <Card sx={{ height: '100%' }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Active Risk Alerts
-              </Typography>
+              <Typography variant="h6" gutterBottom>Active Risk Alerts</Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <Alert severity="error" icon={<Error />}>
-                  Poor posture detected for 2+ hours continuously
-                </Alert>
-                <Alert severity="warning" icon={<Warning />}>
-                  Spinal angle exceeding safe threshold (25°)
-                </Alert>
-                <Alert severity="info" icon={<CheckCircle />}>
-                  Movement frequency below recommended level
-                </Alert>
+                {data?.alerts?.length ? data.alerts.map((a, i) => (
+                  <Alert key={i} severity={a.severity}>{a.message}</Alert>
+                )) : (
+                  <Alert severity="success">No active risk alerts — posture looks good!</Alert>
+                )}
               </Box>
             </CardContent>
           </Card>
@@ -135,30 +85,17 @@ const RiskAssessment = () => {
         <Grid item xs={12}>
           <Card>
             <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Risk Factor Analysis
-              </Typography>
+              <Typography variant="h6" gutterBottom>Risk Factor Analysis</Typography>
               <Grid container spacing={2}>
-                {riskFactors.map((factor, index) => (
-                  <Grid item xs={12} md={6} key={index}>
+                {(data?.factors ?? []).map((factor, i) => (
+                  <Grid item xs={12} md={6} key={i}>
                     <Paper sx={{ p: 2 }}>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                         <Typography variant="subtitle1">{factor.factor}</Typography>
-                        <Chip
-                          label={factor.level}
-                          color={factor.color}
-                          size="small"
-                        />
+                        <Chip label={factor.level} color={getPriorityColor(factor.level)} size="small" />
                       </Box>
-                      <LinearProgress
-                        variant="determinate"
-                        value={factor.score}
-                        color={factor.color}
-                        sx={{ height: 8, borderRadius: 4 }}
-                      />
-                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                        Risk Score: {factor.score}/100
-                      </Typography>
+                      <LinearProgress variant="determinate" value={factor.score} color={getPriorityColor(factor.level)} sx={{ height: 8, borderRadius: 4 }} />
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>Risk Score: {factor.score}/100</Typography>
                     </Paper>
                   </Grid>
                 ))}
@@ -171,25 +108,18 @@ const RiskAssessment = () => {
         <Grid item xs={12}>
           <Card>
             <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Personalized Recommendations
-              </Typography>
+              <Typography variant="h6" gutterBottom>Personalized Recommendations</Typography>
               <List>
-                {recommendations.map((rec, index) => (
-                  <ListItem key={index} sx={{ bgcolor: 'action.hover', mb: 1, borderRadius: 2 }}>
-                    <ListItemIcon sx={{ color: `${getPriorityColor(rec.priority)}.main` }}>
-                      {rec.icon}
+                {(data?.factors ?? []).map((f, i) => (
+                  <ListItem key={i} sx={{ bgcolor: 'action.hover', mb: 1, borderRadius: 2 }}>
+                    <ListItemIcon sx={{ color: `${getPriorityColor(f.level)}.main` }}>
+                      {iconMap[f.level] || <TrendingUp />}
                     </ListItemIcon>
                     <ListItemText
-                      primary={rec.text}
-                      secondary={`Priority: ${rec.priority}`}
+                      primary={`Address: ${f.factor}`}
+                      secondary={`Current risk level: ${f.level}`}
                     />
-                    <Chip
-                      label={rec.priority}
-                      color={getPriorityColor(rec.priority)}
-                      size="small"
-                      variant="outlined"
-                    />
+                    <Chip label={f.level} color={getPriorityColor(f.level)} size="small" variant="outlined" />
                   </ListItem>
                 ))}
               </List>

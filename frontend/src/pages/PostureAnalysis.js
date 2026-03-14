@@ -1,188 +1,152 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  Box,
-  Typography,
-  Card,
-  CardContent,
-  Grid,
-  Tabs,
-  Tab,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Chip,
-  Button,
-  DatePicker,
+  Box, Typography, Card, CardContent, Grid, Tabs, Tab,
+  Table, TableBody, TableCell, TableContainer, TableHead,
+  TableRow, Paper, Chip, Button, CircularProgress, Alert,
 } from '@mui/material';
 import { Analytics, Download, Timeline } from '@mui/icons-material';
 import PostureChart from '../components/PostureChart';
+import { postureAPI, analyticsAPI } from '../services/api';
 
 const PostureAnalysis = () => {
   const [tabValue, setTabValue] = useState(0);
-  
-  const analysisData = [
-    { time: '09:00', posture: 'Good', duration: '45 min', angle: '12°', risk: 'Low' },
-    { time: '10:30', posture: 'Fair', duration: '30 min', angle: '18°', risk: 'Medium' },
-    { time: '12:00', posture: 'Poor', duration: '15 min', angle: '28°', risk: 'High' },
-    { time: '14:15', posture: 'Good', duration: '60 min', angle: '10°', risk: 'Low' },
-    { time: '16:00', posture: 'Fair', duration: '25 min', angle: '20°', risk: 'Medium' },
-  ];
+  const [summary, setSummary] = useState(null);
+  const [history, setHistory] = useState([]);
+  const [trends, setTrends] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const getPostureColor = (posture) => {
-    switch (posture) {
-      case 'Good': return 'success';
-      case 'Fair': return 'warning';
-      case 'Poor': return 'error';
-      default: return 'default';
+  useEffect(() => {
+    async function load() {
+      try {
+        const [sum, hist, trend] = await Promise.all([
+          postureAPI.getSummary('daily'),
+          postureAPI.getHistory(),
+          analyticsAPI.getTrends(),
+        ]);
+        setSummary(sum);
+        setHistory(Array.isArray(hist) ? hist : []);
+        setTrends(trend);
+      } catch (err) {
+        setError('Failed to load posture data.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
     }
+    load();
+  }, []);
+
+  const getPostureColor = (score) => {
+    if (score >= 75) return 'success';
+    if (score >= 50) return 'warning';
+    return 'error';
   };
 
-  const getRiskColor = (risk) => {
-    switch (risk) {
-      case 'Low': return 'success';
-      case 'Medium': return 'warning';
-      case 'High': return 'error';
-      default: return 'default';
-    }
-  };
+  if (loading) return (
+    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+      <CircularProgress />
+    </Box>
+  );
 
   return (
-    <Box
-       component="main"
-       sx={{
-         ml: '-200px',   // 👈 move page LEFT (adjust value)
-         mt: '6px',    // navbar height
-         p: 2,          // slightly tighter padding
-         minHeight: '100vh',
-         backgroundColor: 'background.default',
-       }}
-     >
+    <Box component="main" sx={{ ml: '-200px', mt: '6px', p: 2, minHeight: '100vh', backgroundColor: 'background.default' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-          Posture Analysis
-        </Typography>
-        <Button
-          variant="contained"
-          startIcon={<Download />}
-          sx={{ borderRadius: 2 }}
-        >
-          Export Report
-        </Button>
+        <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'primary.main' }}>Posture Analysis</Typography>
+        <Button variant="contained" startIcon={<Download />} sx={{ borderRadius: 2 }}>Export Report</Button>
       </Box>
 
+      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+
       <Grid container spacing={3}>
-        {/* Summary Cards */}
         <Grid item xs={12} md={4}>
           <Card>
             <CardContent sx={{ textAlign: 'center' }}>
               <Analytics sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
               <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 1 }}>
-                85%
+                {summary?.postureScore ?? '--'}%
               </Typography>
-              <Typography color="text.secondary">
-                Average Posture Score
-              </Typography>
+              <Typography color="text.secondary">Posture Score</Typography>
             </CardContent>
           </Card>
         </Grid>
-        
         <Grid item xs={12} md={4}>
           <Card>
             <CardContent sx={{ textAlign: 'center' }}>
               <Timeline sx={{ fontSize: 48, color: 'success.main', mb: 2 }} />
               <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 1 }}>
-                6.5h
+                {summary?.goodPostureTime ?? '--'}
               </Typography>
-              <Typography color="text.secondary">
-                Good Posture Time
-              </Typography>
+              <Typography color="text.secondary">Good Posture Time</Typography>
             </CardContent>
           </Card>
         </Grid>
-        
         <Grid item xs={12} md={4}>
           <Card>
             <CardContent sx={{ textAlign: 'center' }}>
               <Analytics sx={{ fontSize: 48, color: 'warning.main', mb: 2 }} />
               <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 1 }}>
-                12
+                {summary?.alerts ?? '--'}
               </Typography>
-              <Typography color="text.secondary">
-                Posture Alerts Today
-              </Typography>
+              <Typography color="text.secondary">Bad Posture Readings</Typography>
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Analysis Tabs */}
         <Grid item xs={12}>
           <Card>
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-              <Tabs value={tabValue} onChange={(e, newValue) => setTabValue(newValue)}>
+              <Tabs value={tabValue} onChange={(e, v) => setTabValue(v)}>
                 <Tab label="Daily Analysis" />
                 <Tab label="Weekly Trends" />
                 <Tab label="Detailed Log" />
               </Tabs>
             </Box>
-            
             <CardContent>
               {tabValue === 0 && (
                 <Box>
-                  <Typography variant="h6" gutterBottom>
-                    Today's Posture Analysis
-                  </Typography>
-                  <PostureChart />
+                  <Typography variant="h6" gutterBottom>Today's Posture Analysis</Typography>
+                  <PostureChart data={trends?.hourly} type="hourly" />
                 </Box>
               )}
-              
               {tabValue === 1 && (
                 <Box>
-                  <Typography variant="h6" gutterBottom>
-                    Weekly Posture Trends
-                  </Typography>
-                  <PostureChart />
+                  <Typography variant="h6" gutterBottom>Weekly Posture Trends</Typography>
+                  <PostureChart data={trends?.weekly} type="weekly" />
                 </Box>
               )}
-              
               {tabValue === 2 && (
                 <Box>
-                  <Typography variant="h6" gutterBottom>
-                    Detailed Posture Log
-                  </Typography>
+                  <Typography variant="h6" gutterBottom>Hourly Posture Log</Typography>
                   <TableContainer component={Paper} sx={{ mt: 2 }}>
                     <Table>
                       <TableHead>
                         <TableRow>
-                          <TableCell>Time</TableCell>
-                          <TableCell>Posture Status</TableCell>
-                          <TableCell>Duration</TableCell>
-                          <TableCell>Spinal Angle</TableCell>
-                          <TableCell>Risk Level</TableCell>
+                          <TableCell>Hour</TableCell>
+                          <TableCell>Posture Score</TableCell>
+                          <TableCell>Good Posture %</TableCell>
+                          <TableCell>Avg Back Angle</TableCell>
+                          <TableCell>Readings</TableCell>
+                          <TableCell>Status</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {analysisData.map((row, index) => (
-                          <TableRow key={index}>
-                            <TableCell>{row.time}</TableCell>
+                        {history.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={6} align="center">No data available</TableCell>
+                          </TableRow>
+                        ) : history.map((row, i) => (
+                          <TableRow key={i}>
+                            <TableCell>{row.hour}</TableCell>
+                            <TableCell>{row.postureScore}%</TableCell>
+                            <TableCell>{row.goodPct}%</TableCell>
+                            <TableCell>{row.avgAngle}°</TableCell>
+                            <TableCell>{row.count}</TableCell>
                             <TableCell>
                               <Chip
-                                label={row.posture}
-                                color={getPostureColor(row.posture)}
+                                label={row.postureScore >= 75 ? 'Good' : row.postureScore >= 50 ? 'Fair' : 'Poor'}
+                                color={getPostureColor(row.postureScore)}
                                 size="small"
-                              />
-                            </TableCell>
-                            <TableCell>{row.duration}</TableCell>
-                            <TableCell>{row.angle}</TableCell>
-                            <TableCell>
-                              <Chip
-                                label={row.risk}
-                                color={getRiskColor(row.risk)}
-                                size="small"
-                                variant="outlined"
                               />
                             </TableCell>
                           </TableRow>
