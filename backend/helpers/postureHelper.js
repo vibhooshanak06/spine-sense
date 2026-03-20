@@ -105,7 +105,7 @@ function computeStats(allEntries) {
 /**
  * Build posture history for chart (hourly buckets for today)
  */
-function buildHistory(allEntries, days = 7) {
+function buildHistory(allEntries) {
   const todayIST = getTodayIST();
   const entries = allEntries.filter(e => (e.timestamp || '').startsWith(todayIST));
   const sorted = [...entries].sort((a, b) =>

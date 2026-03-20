@@ -21,7 +21,7 @@ import {
   MonitorHeart,
 } from '@mui/icons-material';
 
-const drawerWidth = 260; // Further reduced for tighter layout
+const drawerWidth = 200;
 
 const menuItems = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },

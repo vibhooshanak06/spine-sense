@@ -30,12 +30,12 @@ router.get('/dashboard-stats', async (req, res) => {
 });
 
 // GET /api/users/profile
-router.get('/profile', (req, res) => {
+router.get('/profile', (_req, res) => {
   res.json({ name: 'SpineSense User', email: 'user@spinesense.com', device: 'SpineSense v1' });
 });
 
 // GET /api/users/settings
-router.get('/settings', (req, res) => {
+router.get('/settings', (_req, res) => {
   res.json({ notifications: true, alertThreshold: 20, dataInterval: 5 });
 });
 

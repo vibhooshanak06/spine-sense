@@ -81,9 +81,9 @@ const Rehabilitation = () => {
     <Box
         component="main"
         sx={{
-          ml: '-200px',   // 👈 move page LEFT (adjust value)
-          mt: '6px',    // navbar height
-          p: 2,          // slightly tighter padding
+          ml: '-200px',
+          mt: '6px',
+          p: 2,
           minHeight: '100vh',
           backgroundColor: 'background.default',
         }}

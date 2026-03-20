@@ -24,7 +24,7 @@ app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/users', require('./routes/users'));
 
 // Health check
-app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
+app.get('/api/health', (_req, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
 
 // ── WebSocket: stream live Firebase /PostureData changes ──────────────────────
 io.on('connection', (socket) => {
@@ -58,5 +58,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
-});
+server.listen(PORT);
