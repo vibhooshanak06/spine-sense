@@ -28,7 +28,6 @@ app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date().t
 
 // ── WebSocket: stream live Firebase /PostureData changes ──────────────────────
 io.on('connection', (socket) => {
-  console.log('🔌 Client connected:', socket.id);
 
   const db = getDb();
   const ref = db.ref('/PostureData');
@@ -53,7 +52,6 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', () => {
-    console.log('🔌 Client disconnected:', socket.id);
     ref.off('child_added', handler);
     statsRef.off('value', statsHandler);
   });
@@ -61,5 +59,4 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
-  console.log(`🚀 Backend running on http://localhost:${PORT}`);
 });

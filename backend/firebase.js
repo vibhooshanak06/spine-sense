@@ -10,7 +10,6 @@ function initFirebase() {
       credential: admin.credential.cert(serviceAccount),
       databaseURL: process.env.FIREBASE_DATABASE_URL,
     });
-    console.log('✅ Firebase initialized');
   }
   db = admin.database();
   return db;
