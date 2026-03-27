@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import {
   Grid, Card, CardContent, Typography, Box, Avatar,
   IconButton, LinearProgress, Chip, Table, TableBody,
@@ -15,7 +15,6 @@ const Dashboard = () => {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [lastLive, setLastLive] = useState(null);
 
   const loadData = useCallback(async () => {
     try {
@@ -37,25 +36,40 @@ const Dashboard = () => {
   useEffect(() => {
     loadData();
 
-    // WebSocket for live updates
     const socket = io(SOCKET_URL, { transports: ['websocket'] });
+
+    // Full analytics refresh every 5 minutes from cache
+    socket.on('analytics_update', (data) => {
+      if (data.dashboard) setDashData(data.dashboard);
+      if (data.trends?.hourly) setHistory(data.trends.hourly);
+    });
+
+    // Live posture entry from Firebase listener
     socket.on('stats_update', (stats) => {
-      setLastLive(stats);
       setDashData(prev => prev ? {
         ...prev,
         postureScore: stats.postureScore,
-        currentPosture: stats.currentStatus === 'Bad' ? 'Poor' : 'Good',
+        currentPosture: stats.currentStatus,
         dailyAverage: stats.dailyGoodPct,
         riskLevel: stats.postureScore >= 75 ? 'Low' : stats.postureScore >= 50 ? 'Medium' : 'High',
         lastUpdated: stats.lastUpdated,
+        avgBackAngle: stats.avgBackAngle ?? prev.avgBackAngle,
+        badDurationMins: stats.badDurationMins ?? prev.badDurationMins,
       } : prev);
     });
-    socket.on('posture_update', (entry) => setLastLive(entry));
+
+    // Real-time flex sensor update
+    socket.on('latest_posture', (latest) => {
+      if (!latest) return;
+      setDashData(prev => prev ? {
+        ...prev,
+        currentPosture: latest.posture,
+      } : prev);
+    });
 
     return () => socket.disconnect();
   }, [loadData]);
 
-  // Circular Progress SVG
   const CircularScore = ({ value, size = 120, strokeWidth = 8, color = '#4F46E5', label }) => {
     const radius = (size - strokeWidth) / 2;
     const circumference = radius * 2 * Math.PI;
@@ -157,7 +171,6 @@ const Dashboard = () => {
           />
         </Grid>
 
-        {/* Circular Score Charts */}
         <Grid item xs={12} md={8}>
           <Card>
             <CardContent>
@@ -181,7 +194,6 @@ const Dashboard = () => {
           </Card>
         </Grid>
 
-        {/* Quick Stats */}
         <Grid item xs={12} md={4}>
           <Card sx={{ height: '100%' }}>
             <CardContent>
@@ -212,7 +224,6 @@ const Dashboard = () => {
           </Card>
         </Grid>
 
-        {/* Hourly History Table */}
         <Grid item xs={12}>
           <Card>
             <CardContent>

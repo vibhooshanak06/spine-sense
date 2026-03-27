@@ -1,11 +1,14 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   Box, Typography, Card, CardContent, Grid, Alert,
   LinearProgress, List, ListItem, ListItemIcon, ListItemText,
   Chip, Paper, CircularProgress as MuiSpinner,
 } from '@mui/material';
-import { Warning, Error, CheckCircle, TrendingUp, Schedule, Person } from '@mui/icons-material';
+import { Warning, CheckCircle, TrendingUp, Schedule } from '@mui/icons-material';
 import { analyticsAPI } from '../services/api';
+import { io } from 'socket.io-client';
+
+const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000';
 
 const RiskAssessment = () => {
   const [data, setData] = useState(null);
@@ -17,6 +20,12 @@ const RiskAssessment = () => {
       .then(setData)
       .catch(() => setError('Failed to load risk data.'))
       .finally(() => setLoading(false));
+
+    const socket = io(SOCKET_URL, { transports: ['websocket'] });
+    socket.on('analytics_update', (update) => {
+      if (update.risk) setData(update.risk);
+    });
+    return () => socket.disconnect();
   }, []);
 
   const getPriorityColor = (level) => {
@@ -34,13 +43,12 @@ const RiskAssessment = () => {
   );
 
   return (
-    <Box component="main" sx={{ ml: '-200px', mt: '6px', p: 2, minHeight: '100vh', backgroundColor: 'background.default' }}>
-      <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'primary.main', mb: 3 }}>Risk Assessment</Typography>
+    <Box sx={{ minHeight: '100vh' }}>
+      <Typography variant="h4" sx={{ fontWeight: 700, mb: 3 }}>Risk Assessment</Typography>
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
       <Grid container spacing={3}>
-        {/* Overall Risk Score */}
         <Grid item xs={12} md={6}>
           <Card sx={{ height: '100%' }}>
             <CardContent sx={{ textAlign: 'center' }}>
@@ -65,7 +73,6 @@ const RiskAssessment = () => {
           </Card>
         </Grid>
 
-        {/* Alerts */}
         <Grid item xs={12} md={6}>
           <Card sx={{ height: '100%' }}>
             <CardContent>
@@ -74,14 +81,13 @@ const RiskAssessment = () => {
                 {data?.alerts?.length ? data.alerts.map((a, i) => (
                   <Alert key={i} severity={a.severity}>{a.message}</Alert>
                 )) : (
-                  <Alert severity="success">No active risk alerts — posture looks good!</Alert>
+                  <Alert severity="success">No active risk alerts â€” posture looks good!</Alert>
                 )}
               </Box>
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Risk Factors */}
         <Grid item xs={12}>
           <Card>
             <CardContent>
@@ -104,7 +110,6 @@ const RiskAssessment = () => {
           </Card>
         </Grid>
 
-        {/* Recommendations */}
         <Grid item xs={12}>
           <Card>
             <CardContent>
@@ -132,3 +137,5 @@ const RiskAssessment = () => {
 };
 
 export default RiskAssessment;
+
+

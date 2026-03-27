@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   Box, Typography, Card, CardContent, Grid, Tabs, Tab,
   Table, TableBody, TableCell, TableContainer, TableHead,
@@ -7,6 +7,9 @@ import {
 import { Analytics, Download, Timeline } from '@mui/icons-material';
 import PostureChart from '../components/PostureChart';
 import { postureAPI, analyticsAPI } from '../services/api';
+import { io } from 'socket.io-client';
+
+const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000';
 
 const PostureAnalysis = () => {
   const [tabValue, setTabValue] = useState(0);
@@ -35,6 +38,24 @@ const PostureAnalysis = () => {
       }
     }
     load();
+
+    const socket = io(SOCKET_URL, { transports: ['websocket'] });
+
+    // Refresh trends and history every 5 minutes from cache broadcast
+    socket.on('analytics_update', (data) => {
+      if (data.trends) setTrends(data.trends);
+      if (data.trends?.hourly) setHistory(data.trends.hourly);
+      if (data.dashboard) {
+        setSummary(prev => prev ? {
+          ...prev,
+          postureScore: data.dashboard.postureScore,
+          goodPostureTime: prev.goodPostureTime,
+          alerts: data.dashboard.badReadings,
+        } : prev);
+      }
+    });
+
+    return () => socket.disconnect();
   }, []);
 
   const getPostureColor = (score) => {
@@ -50,9 +71,9 @@ const PostureAnalysis = () => {
   );
 
   return (
-    <Box component="main" sx={{ ml: '-200px', mt: '6px', p: 2, minHeight: '100vh', backgroundColor: 'background.default' }}>
+    <Box sx={{ minHeight: '100vh' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" sx={{ fontWeight: 'bold', color: 'primary.main' }}>Posture Analysis</Typography>
+        <Typography variant="h4" sx={{ fontWeight: 700 }}>Posture Analysis</Typography>
         <Button variant="contained" startIcon={<Download />} sx={{ borderRadius: 2 }}>Export Report</Button>
       </Box>
 
@@ -96,7 +117,7 @@ const PostureAnalysis = () => {
         <Grid item xs={12}>
           <Card>
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-              <Tabs value={tabValue} onChange={(e, v) => setTabValue(v)}>
+              <Tabs value={tabValue} onChange={(_, v) => setTabValue(v)}>
                 <Tab label="Daily Analysis" />
                 <Tab label="Weekly Trends" />
                 <Tab label="Detailed Log" />
@@ -140,7 +161,7 @@ const PostureAnalysis = () => {
                             <TableCell>{row.hour}</TableCell>
                             <TableCell>{row.postureScore}%</TableCell>
                             <TableCell>{row.goodPct}%</TableCell>
-                            <TableCell>{row.avgAngle}°</TableCell>
+                            <TableCell>{row.avgAngle}Â°</TableCell>
                             <TableCell>{row.count}</TableCell>
                             <TableCell>
                               <Chip
@@ -165,3 +186,5 @@ const PostureAnalysis = () => {
 };
 
 export default PostureAnalysis;
+
+

@@ -8,9 +8,22 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
+// Attach JWT token to every request
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
 api.interceptors.response.use(
   (response) => response.data,
-  (error) => Promise.reject(error.response?.data || error.message)
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error.response?.data || error.message);
+  }
 );
 
 export const postureAPI = {
