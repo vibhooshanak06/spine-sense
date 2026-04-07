@@ -16,7 +16,7 @@ const menuItems = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
   { text: 'Posture Analysis', icon: <AnalyticsIcon />, path: '/analysis' },
   { text: 'Risk Assessment', icon: <WarningIcon />, path: '/risk' },
-  { text: 'Rehabilitation', icon: <RehabIcon />, path: '/rehabilitation' },
+  // { text: 'Rehabilitation', icon: <RehabIcon />, path: '/rehabilitation' },
   { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
 ];
 

@@ -6,7 +6,7 @@ import {
 } from '@mui/material';
 import { Notifications, Bluetooth, Security, Vibration, VolumeUp } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
-import api from '../services/api';
+import { authAPI } from '../services/api';
 import { io } from 'socket.io-client';
 
 const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000';
@@ -30,7 +30,7 @@ const Settings = () => {
   });
 
   useEffect(() => {
-    api.get('/auth/me')
+    authAPI.getMe()
       .then(data => setProfile({ name: data.name, email: data.email }))
       .catch(() => {
         if (user) setProfile({ name: user.name, email: user.email });
@@ -41,8 +41,8 @@ const Settings = () => {
     const socket = io(SOCKET_URL, { transports: ['websocket'] });
     socket.on('posture_update', (entry) => {
       setSensorStatus({
-        sensor1: entry?.sensor1?.angle != null ? `${entry.sensor1.angle.toFixed(1)}Â°` : null,
-        sensor2: entry?.sensor2?.angle != null ? `${entry.sensor2.angle.toFixed(1)}Â°` : null,
+        sensor1: entry?.sensor1?.angle != null ? `${entry.sensor1.angle.toFixed(1)}°` : null,
+        sensor2: entry?.sensor2?.angle != null ? `${entry.sensor2.angle.toFixed(1)}°` : null,
       });
     });
     return () => socket.disconnect();
@@ -139,13 +139,13 @@ const Settings = () => {
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 <Chip
                   icon={<Bluetooth />}
-                  label={sensorStatus.sensor1 != null ? `Sensor 1 â€” ${sensorStatus.sensor1}` : 'Sensor 1 â€” Waiting...'}
+                  label={sensorStatus.sensor1 != null ? `Sensor 1 — ${sensorStatus.sensor1}` : 'Sensor 1 — Waiting...'}
                   color={sensorStatus.sensor1 != null ? 'success' : 'default'}
                   variant="outlined"
                 />
                 <Chip
                   icon={<Bluetooth />}
-                  label={sensorStatus.sensor2 != null ? `Sensor 2 â€” ${sensorStatus.sensor2}` : 'Sensor 2 â€” Waiting...'}
+                  label={sensorStatus.sensor2 != null ? `Sensor 2 — ${sensorStatus.sensor2}` : 'Sensor 2 — Waiting...'}
                   color={sensorStatus.sensor2 != null ? 'success' : 'default'}
                   variant="outlined"
                 />

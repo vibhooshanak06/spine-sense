@@ -1,282 +1,170 @@
-# IoT Posture Monitoring System
+# SpineSense
 
-A comprehensive solution for continuous posture assessment and early risk identification using wearable sensors and machine learning.
+IoT-based posture monitoring system with real-time analytics and risk assessment.
 
-## 🌟 Features
+## Project Overview
 
-- **Real-time posture monitoring** with IoT sensor integration
-- **Machine learning-based posture classification**
-- **Risk analysis and early detection**
-- **Rehabilitation support with exercise library**
-- **Dark/Light mode interface** with blue color palette
-- **Professional responsive design**
-- **Real-time alerts and notifications**
-- **Comprehensive analytics and reporting**
+SpineSense is a comprehensive solution for continuous posture assessment using wearable sensors and machine learning. The system provides real-time monitoring, analytics, and risk analysis through a modern web interface.
 
-## 📁 Project Structure
+## Project Structure
 
 ```
-posture-monitoring-system/
-├── frontend/          # React.js frontend application
+spine-sense/
+├── backend/                 # Express.js API server
+│   ├── controllers/         # Request handlers
+│   ├── helpers/             # Utility functions
+│   ├── middleware/          # Express middleware
+│   ├── routes/              # Route definitions
+│   ├── analyticsCache.js    # Firebase polling
+│   ├── db.js               # MySQL configuration
+│   ├── firebase.js         # Firebase configuration
+│   ├── server.js           # Main server
+│   └── README.md
+├── frontend/                # React.js application
 │   ├── src/
-│   │   ├── components/    # Reusable UI components
-│   │   ├── pages/         # Main application pages
-│   │   └── services/      # API service layer
-│   ├── public/
-│   └── package.json
-├── backend/           # Node.js/Express backend API
-│   ├── models/           # MongoDB data models
-│   ├── routes/           # API route handlers
-│   ├── middleware/       # Custom middleware
-│   └── server.js         # Main server file
-├── package.json       # Root package.json for scripts
+│   │   ├── components/      # UI components
+│   │   ├── context/         # Auth context
+│   │   ├── pages/          # Page components
+│   │   └── services/       # API service
+│   └── README.md
+├── package.json             # Root scripts
 └── README.md
 ```
 
-## 🚀 Quick Start
+## Features
 
-### Prerequisites
+- Real-time posture monitoring with IoT sensors
+- Machine learning-based posture classification
+- Risk analysis and early detection
+- Rehabilitation support with exercise library
+- Dark/Light mode interface
+- Comprehensive analytics and reporting
 
-Before running the application, make sure you have:
+## Technology Stack
 
-- **Node.js** (v16 or higher) - [Download here](https://nodejs.org/)
-- **MongoDB** (v5 or higher) - [Download here](https://www.mongodb.com/try/download/community)
-- **Git** - [Download here](https://git-scm.com/)
+### Backend
+- **Express.js** - Web framework
+- **MySQL** - User database
+- **Firebase** - Realtime Database
+- **Socket.IO** - Real-time communication
+- **JWT** - Authentication
+- **bcryptjs** - Password hashing
 
-### Installation & Setup
+### Frontend
+- **React.js 18** - UI framework
+- **Material-UI v5** - Component library
+- **Chart.js** - Data visualization
+- **Socket.IO Client** - Real-time updates
 
-1. **Clone the repository** (if from Git):
+## Prerequisites
+
+- Node.js (v16+)
+- MySQL (v8+)
+- Firebase project with Realtime Database
+
+## Installation
+
 ```bash
-git clone <repository-url>
-cd posture-monitoring-system
-```
-
-2. **Install all dependencies**:
-```bash
+# Install all dependencies
 npm run install-all
 ```
-This will install dependencies for both frontend and backend.
 
-3. **Set up environment variables**:
+Or install individually:
 
-**Backend Environment (.env)**:
 ```bash
-cd backend
-copy .env.example .env
+# Backend dependencies
+npm run install-backend
+
+# Frontend dependencies
+npm run install-frontend
 ```
-Edit `backend/.env` with your settings:
+
+## Environment Setup
+
+**Backend (.env):**
 ```env
 PORT=5000
-NODE_ENV=development
-MONGODB_URI=mongodb://localhost:27017/posture_monitoring
-JWT_SECRET=your-super-secret-jwt-key-here
-JWT_EXPIRES_IN=7d
-FRONTEND_URL=http://localhost:3000
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=your_password
+DB_NAME=spinesense
+JWT_SECRET=your-secret-key
+JWT_EXPIRE=7d
+FIREBASE_DATABASE_URL=https://your-project.firebaseio.com
 ```
 
-**Frontend Environment (.env)**:
-```bash
-cd frontend
-copy .env.example .env
-```
-Edit `frontend/.env`:
+**Frontend (.env):**
 ```env
 REACT_APP_API_URL=http://localhost:5000/api
 REACT_APP_SOCKET_URL=http://localhost:5000
 ```
 
-4. **Start MongoDB**:
-Make sure MongoDB is running on your system:
+## Running the Application
+
+### Run Both (Frontend + Backend)
 ```bash
-# Windows (if installed as service)
-net start MongoDB
-
-# macOS (with Homebrew)
-brew services start mongodb-community
-
-# Linux
-sudo systemctl start mongod
-```
-
-5. **Run the application**:
-```bash
-# Start both frontend and backend simultaneously
 npm start
 ```
 
-Or run them separately:
+### Run Backend Only
 ```bash
-# Terminal 1 - Backend
 npm run start-backend
+```
+Backend runs at: http://localhost:5000
 
-# Terminal 2 - Frontend  
+### Run Frontend Only
+```bash
 npm run start-frontend
 ```
+Frontend runs at: http://localhost:3000
 
-## 🌐 Access the Application
-
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:5000
-- **API Health Check**: http://localhost:5000/health
-
-## 🛠️ Development Commands
-
+### Development Mode (Backend with auto-reload)
 ```bash
-# Install dependencies for both projects
-npm run install-all
-
-# Start both frontend and backend
-npm start
-
-# Start only frontend
-npm run start-frontend
-
-# Start only backend
-npm run start-backend
-
-# Build frontend for production
-npm run build
-
-# Run tests
-npm test
+cd backend && npm run dev
 ```
 
-## 📱 Using the Application
+## Docker Deployment
 
-### 1. **Dashboard**
-- View real-time posture monitoring
-- Check current posture status and risk level
-- Monitor weekly trends and statistics
-- Review recent alerts and notifications
+1. Ensure Docker and Docker Compose v2 are installed.
+2. (Optional) Copy your Firebase `serviceAccount.json` into `backend/` and remove the comment in `docker-compose.yml` to mount it, or provide another bind mount when running `docker compose`.
+3. Override any secrets by creating a `.env` file in the repository root; values such as `MYSQL_PASSWORD`, `JWT_SECRET`, and `FIREBASE_DATABASE_URL` will be picked up automatically.
+4. Build and start the full stack:
 
-### 2. **Posture Analysis**
-- Analyze detailed posture history
-- View statistical breakdowns
-- Export reports for healthcare providers
-- Track improvement over time
+```bash
+docker compose up --build
+```
 
-### 3. **Risk Assessment**
-- Get comprehensive risk scoring
-- Receive personalized recommendations
-- Monitor risk factors and trends
-- Set up custom alert thresholds
+The services start with the following host ports:
 
-### 4. **Rehabilitation**
-- Access guided exercise library
-- Track rehabilitation progress
-- Set and monitor exercise goals
-- Use built-in exercise timer
+- Backend API: http://localhost:5000
+- Frontend UI: http://localhost:3000
+- MySQL: exposed on 3306 for local tools
 
-### 5. **Settings**
-- Manage connected IoT devices
-- Configure notification preferences
-- Update user profile and medical history
-- Adjust privacy and data settings
+To rebuild after code changes, rerun `docker compose up --build`. Shut everything down with `docker compose down`, and preserve database data across runs via the managed `mysql-data` volume.
 
-## 🔧 Technology Stack
-
-### **Frontend**
-- **React.js 18** - Modern UI framework
-- **Material-UI v5** - Professional component library
-- **Chart.js** - Data visualization
-- **Axios** - HTTP client
-- **React Router** - Navigation
-- **Socket.IO Client** - Real-time communication
-
-### **Backend**
-- **Node.js** - Runtime environment
-- **Express.js** - Web framework
-- **MongoDB** - Database
-- **Mongoose** - ODM for MongoDB
-- **Socket.IO** - Real-time communication
-- **JWT** - Authentication
-- **Joi** - Data validation
-- **Helmet** - Security middleware
-
-## 🔒 Security Features
-
-- JWT-based authentication
-- Password hashing with bcrypt
-- Rate limiting on API endpoints
-- CORS protection
-- Input validation and sanitization
-- Helmet security headers
-
-## 📊 API Endpoints
+## API Endpoints
 
 ### Authentication
 - `POST /api/auth/register` - User registration
 - `POST /api/auth/login` - User login
 - `GET /api/auth/me` - Get current user
-- `POST /api/auth/refresh` - Refresh token
 
-### Posture Data
+### Posture
+- `GET /api/posture/current` - Current posture status
+- `GET /api/posture/history` - Posture history
+- `GET /api/posture/summary/:period` - Period summary
 - `POST /api/posture/data` - Submit sensor data
-- `GET /api/posture/current` - Get current status
-- `GET /api/posture/history` - Get posture history
-- `GET /api/posture/summary/:period` - Get summary
-
-### Devices
-- `GET /api/devices` - Get user devices
-- `POST /api/devices` - Add new device
-- `PUT /api/devices/:id` - Update device
-- `POST /api/devices/:id/calibrate` - Calibrate device
 
 ### Analytics
 - `GET /api/analytics/dashboard` - Dashboard data
 - `GET /api/analytics/trends` - Trend analysis
 - `GET /api/analytics/risk-assessment` - Risk assessment
 
-## 🚨 Troubleshooting
+### Users
+- `GET /api/users/dashboard-stats` - Dashboard statistics
+- `GET /api/users/profile` - User profile
+- `GET /api/users/settings` - User settings
 
-### Common Issues
+## License
 
-1. **MongoDB Connection Error**:
-   - Ensure MongoDB is running
-   - Check connection string in `.env`
-   - Verify MongoDB service is started
-
-2. **Port Already in Use**:
-   - Change ports in environment files
-   - Kill processes using the ports:
-   ```bash
-   # Windows
-   netstat -ano | findstr :3000
-   taskkill /PID <PID> /F
-   
-   # macOS/Linux
-   lsof -ti:3000 | xargs kill -9
-   ```
-
-3. **CORS Errors**:
-   - Verify `FRONTEND_URL` in backend `.env`
-   - Check API URL in frontend `.env`
-
-4. **Dependencies Issues**:
-   ```bash
-   # Clear npm cache
-   npm cache clean --force
-   
-   # Delete node_modules and reinstall
-   rm -rf node_modules package-lock.json
-   npm install
-   ```
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 📞 Support
-
-For support and questions:
-- Create an issue in the repository
-- Check the troubleshooting section
-- Review the API documentation
+MIT
